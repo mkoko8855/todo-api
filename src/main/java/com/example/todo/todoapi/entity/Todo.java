@@ -32,7 +32,7 @@ public class Todo {
     private String title; //할일의 정보(제목)
 
 
-    private boolean doen; //할일 완료 여부. 자바스크립트의 배열,객체타입으로 선언했었는데 이젠 DB로 관리할꺼다.
+    private boolean done; //할일 완료 여부. 자바스크립트의 배열,객체타입으로 선언했었는데 이젠 DB로 관리할꺼다.
     
 
     @CreationTimestamp

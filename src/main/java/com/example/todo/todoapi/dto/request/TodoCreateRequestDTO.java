@@ -6,7 +6,7 @@ import lombok.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
-
+//todo가 실행(create할) 요구를 할 dto들의 모음.
 @Setter
 @Getter
 @ToString
