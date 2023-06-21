@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,12 +35,13 @@ public class TodoService {
     public TodoListResponseDTO retrieve(){ //갱신, 수정, 삭제 될 때마다 이 retrieve를 불러야함.
         List<Todo> entityList = todoRepository.findAll(); //레파지토리야. 다찾아와.
 
-        /*
-        List<TodoDetailResponseDTO> dtoList = new ArrayList<>();
-        for (Todo todo : entityList) { //todo변수에 하나씩 전달될때마다 객체 생성
-            TodoDetailResponseDTO dto = new TodoDetailResponseDTO(todo);
-            dtoList.add(dto);
-        이거를 모던하게 바꾸자. */
+
+        //List<TodoDetailResponseDTO> dtoList = new ArrayList<>();
+        //for (Todo todo : entityList) { //todo변수에 하나씩 전달될때마다 객체 생성
+        //    TodoDetailResponseDTO dto = new TodoDetailResponseDTO(todo);
+        //    dtoList.add(dto);
+        //이거를 모던하게 바꾸자.
+
 
         //모던하게
         List<TodoDetailResponseDTO> dtoList = entityList.stream()

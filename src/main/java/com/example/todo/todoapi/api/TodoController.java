@@ -21,6 +21,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/todos") //공통url맵핑
+@CrossOrigin(origins = "http://localhost:3000") //여러개의 url지정이면 배열형태로줘도됨. 우린 하나니까 문자열형태로 하나만.
 public class TodoController {
 
     //얜 서비스와 의존관계있으니
@@ -30,6 +31,7 @@ public class TodoController {
     //할 일 등록 요청
     @PostMapping
     public ResponseEntity<?> createTodo(@Validated @RequestBody TodoCreateRequestDTO requestDTO, BindingResult result) {
+        log.info("add 요청 들어옴");
         if (result.hasErrors()) { //에러있어?
             log.warn("DTO 검증 에러가 발생했어 그 에러는 : {}", result.getFieldError()); //여러개검증은 Errors로 ForEach써도됨. TodoCreateRequestDTO가보면 title 하나만했으니, Error만적어도됨..
             return ResponseEntity
