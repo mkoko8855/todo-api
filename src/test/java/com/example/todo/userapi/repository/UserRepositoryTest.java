@@ -51,8 +51,8 @@ class UserRepositoryTest {
         //then
         assertTrue(userOptional.isPresent()); //단언메서드1번째
         //옵셔널 정보얻어볼까
-        User user = userOptional.get();
-        assertEquals("춘식이", user.getUserName()); //단언메서드2번째
+        User user = userOptional.get(); //객체받았고,
+        assertEquals("춘식이", user.getUserName()); //객체 받는지, 다시 검증. 즉, 단언메서드2번째
 
         System.out.println("\n\n\n");
         System.out.println("user = " + user);
@@ -67,7 +67,7 @@ class UserRepositoryTest {
         //given
         String email = "db1234@naver.com";
         //when
-        boolean flag = userRepository.existsByEmail(email);
+        boolean flag = userRepository.existsByEmail(email); //없으니 false가있다고 단언하자.
         //then
         assertFalse(flag);
 

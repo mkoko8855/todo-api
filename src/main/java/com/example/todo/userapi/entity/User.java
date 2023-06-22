@@ -26,7 +26,7 @@ public class User {
     @GenericGenerator(name = "system-uuid", strategy = "uuid") //uuid를 랜덤으로 생성해서 식별자 만드는 전략. 즉, 아래 id는 계정 명이 아니라 식별 코드로 사용할 예정이다.
     private String id; //계정 명이 아니라 식별 코드로 사용할 것이다. 요즘엔 이메일을 계정으로 사용하는 경우도 많다. 회원을 구분하는 고유한 랜덤 문자열로, 유효식별코드로 사용하자.
 
-    @Column(unique = true, nullable = false) //PK로 알수도있겠지만, PK는 @Id로준다. 이메일을 계정 명으로 쓸꺼면 고유해야 하니 유니크줬다.
+    @Column(unique = true, nullable = false) //PK로 알수도있겠지만, PK는 @Id로준다. 이메일을 계정 명으로 쓸꺼면 고유해야 하니 유니크줬다. 이메일로 로그인할거다.
     private String email;
 
     @Column(nullable = false)

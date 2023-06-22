@@ -46,9 +46,9 @@ public class TodoService {
         //모던하게
         List<TodoDetailResponseDTO> dtoList = entityList.stream()
                 .map(todo -> new TodoDetailResponseDTO(todo))
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toList()); //새로운 리스트로 다시 리턴. 리턴한 결과가 위 dtoList 이걸로 들어간다.
 
-        return TodoListResponseDTO.builder()
+        return TodoListResponseDTO.builder() //리턴한 결과가 dtoList 이걸로 들어간다.
                 .todos(dtoList)
                 .build();
 
