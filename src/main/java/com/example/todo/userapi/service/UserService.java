@@ -1,10 +1,13 @@
 package com.example.todo.userapi.service;
 
 
+import com.example.todo.auth.TokenProvider;
 import com.example.todo.exception.DuplicatedEmailException;
 import com.example.todo.exception.NoRegisteredArgumentsException;
 import com.example.todo.userapi.dto.UserSignUpResponseDTO;
+import com.example.todo.userapi.dto.request.LoginRequestDTO;
 import com.example.todo.userapi.dto.request.UserRequestSignUpDTO;
+import com.example.todo.userapi.dto.response.LoginResponseDTO;
 import com.example.todo.userapi.entity.User;
 import com.example.todo.userapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,8 @@ public class UserService {
     //비밀번호 암호화를 위한 변수선언 -> 이용하기 위해 빈등록해야됨. -> config패키지만들고 WebSecurityConfig클래스 만들었음.
     private final PasswordEncoder encoder;
 
+
+    private final TokenProvider tokenProvider; //TokenProvider클래스를 위한 주입. 주입하려면 빈등록해야지.
 
 
     //회원 가입 처리
@@ -69,4 +74,44 @@ public class UserService {
     public boolean isDuplicate(String email) {
         return userRepository.existsByEmail(email);
     }
+
+
+
+
+
+    //회원 인증 , 우리 회원인지 아닌지 결정해서 로그인시켜줄지 말지.
+    public LoginResponseDTO authenticate(final LoginRequestDTO dto){ //클라이언트에서 데이터가 넘어오겠지 뭘로받을까, LoginRequestDTO dto 로 받자.
+
+        //조회먼저해야겠지. 사용자가 로그인을 위해 보내준 정보랑 회원 정보랑 비교하려고.
+        //이메일을 통해 회원 정보를 조회.
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow( //데이터가존재하지않으면 런타임익셉션을 실행함.
+                        () -> new RuntimeException("가입된 회원이 아닙니다.")
+                );
+
+        //비밀번호 검증해야되는데, 암호화해놨잖아.
+        //패스워드 검증
+        String rawPassword = dto.getPassword(); //사용자가 입력한 날것의 비밀번호
+        String encodedPassword = user.getPassword(); //DB에 저장된 비밀번호
+
+        if(!encoder.matches(rawPassword, encodedPassword)){ //일치하지않으면
+            throw new RuntimeException("비밀번호가 틀렸습니다.");
+        }
+
+        //if문 나왔다는건, 비밀번호 정확히 입력한것.
+        log.info("{}님 로그인 성공!", user.getUserName());
+
+        //이 사람이 로그인했다는 징표를 남겨줘야지. 전에는 세션이나 쿠키로 했다. 토큰으로하자. (JWT)
+        //즉, 로그인 성공 후에 클라이언트에게 뭘 리턴할 것인가?
+        // -> JWT를 클라이언트에게 발급 해 줘야 함.
+        String token = tokenProvider.createToken(user);
+        
+        return new LoginResponseDTO(user, token); //로그인한 사용자의 정보와 토큰을 주자 -> 얘는 컨트롤러부르잖아.
+
+
+    }
+
+
+
+
 }

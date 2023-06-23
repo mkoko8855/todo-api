@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-
+//0622 0623
 @RestController
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/todos") //공통url맵핑
-@CrossOrigin(origins = "http://localhost:3000") //여러개의 url지정이면 배열형태로줘도됨. 우린 하나니까 문자열형태로 하나만.
+//@CrossOrigin(origins = "http://localhost:3000") //여러개의 url지정이면 배열형태로줘도됨. 우린 하나니까 문자열형태로 하나만.
 public class TodoController {
 
     //얜 서비스와 의존관계있으니
