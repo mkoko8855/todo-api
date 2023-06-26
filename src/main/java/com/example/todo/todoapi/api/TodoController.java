@@ -1,6 +1,7 @@
 package com.example.todo.todoapi.api;
 
 
+import com.example.todo.auth.TokenUserInfo;
 import com.example.todo.todoapi.dto.request.TodoCreateRequestDTO;
 import com.example.todo.todoapi.dto.request.TodoModifyRequestDTO;
 import com.example.todo.todoapi.dto.response.TodoDetailResponseDTO;
@@ -9,6 +10,7 @@ import com.example.todo.todoapi.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
@@ -28,9 +30,9 @@ public class TodoController {
     private final TodoService todoService;
 
 
-    //할 일 등록 요청
+    //할 일 등록 요청(0626에 수정)
     @PostMapping
-    public ResponseEntity<?> createTodo(@Validated @RequestBody TodoCreateRequestDTO requestDTO, BindingResult result) {
+    public ResponseEntity<?> createTodo(@AuthenticationPrincipal TokenUserInfo userInfo, @Validated @RequestBody TodoCreateRequestDTO requestDTO, BindingResult result) {
         log.info("add 요청 들어옴");
         if (result.hasErrors()) { //에러있어?
             log.warn("DTO 검증 에러가 발생했어 그 에러는 : {}", result.getFieldError()); //여러개검증은 Errors로 ForEach써도됨. TodoCreateRequestDTO가보면 title 하나만했으니, Error만적어도됨..
@@ -41,7 +43,7 @@ public class TodoController {
         //입력값 검증 통과하면 if문 건너뛰니..이제부르자
         //todoService.create(requestDTO); 그러나 이거 트라이캐치로 쓸 것임.
         try {
-            TodoListResponseDTO responseDTO = todoService.create(requestDTO); //requestDTO는 위에 매개값으로적은것
+            TodoListResponseDTO responseDTO = todoService.create(requestDTO, userInfo.getUserId()); //requestDTO는 위에 매개값으로적은것
             return ResponseEntity
                     .ok()
                     .body(responseDTO);
@@ -57,7 +59,7 @@ public class TodoController {
 
     //할 일 삭제 요청
     @DeleteMapping("/{id}") //id를받음
-    public ResponseEntity<?> deleteTodo(@PathVariable("id") String todoId) { //매개값으로 경로에 묻어있는 id를 받아오기 위해, 패쓰베리어블 작성하자. uuid니까 String으로.
+    public ResponseEntity<?> deleteTodo(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable("id") String todoId) { //매개값으로 경로에 묻어있는 id를 받아오기 위해, 패쓰베리어블 작성하자. uuid니까 String으로.
         log.info("/api/todos/{} DELETE request요청이왔어요!", todoId);
 
         //id가 이상한게 왔을 수도 있으니, 검증하자
@@ -67,10 +69,8 @@ public class TodoController {
                     .body(TodoListResponseDTO.builder().error("ID를 전달 해 주세요"));
 
         }
-
-
         try {
-            TodoListResponseDTO responseDTO = todoService.delete(todoId); //서비스야. 삭제해줘. todoId줄게. delete 메서드를 컨트롤러에서 만들러가자.
+            TodoListResponseDTO responseDTO = todoService.delete(todoId, userInfo.getUserId()); //서비스야. 삭제해줘. todoId줄게. delete 메서드를 컨트롤러에서 만들러가자.
             return ResponseEntity.ok().body(responseDTO); //responseDTO라는 최신의 정보를 화면단으로 보낸다.
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
@@ -83,10 +83,10 @@ public class TodoController {
 
     //할 일 목록 요청
     @GetMapping
-    public ResponseEntity<?> retrieveTodoList() {
+    public ResponseEntity<?> retrieveTodoList(@AuthenticationPrincipal TokenUserInfo userInfo) { //이 매개값이 바로, 토큰에 인증된 사용자 정보를 불러올 수 있다. 이거 쓰려고 JwtAuthFilter클래스에 //인증 완료 처리   부분을 작성한 것이다.
         //리트라이브 불러서 보내주면 끝..
         log.info("/api/todos GET request");
-        TodoListResponseDTO responseDTO = todoService.retrieve();
+        TodoListResponseDTO responseDTO = todoService.retrieve(userInfo.getUserId());
 
         return ResponseEntity.ok().body(responseDTO);
 
@@ -95,7 +95,7 @@ public class TodoController {
 
     //할 일 수정 요청(풋과 패치를 같이썻음)
     @RequestMapping(method = {RequestMethod.PUT, RequestMethod.PATCH})
-    public ResponseEntity<?> updateTodo(@Validated @RequestBody TodoModifyRequestDTO requestDTO, BindingResult result, HttpServletRequest request) { //풋인지 패치인지 구분하고싶으면 HttpServlet써도됨~
+    public ResponseEntity<?> updateTodo(@AuthenticationPrincipal TokenUserInfo userInfo, @Validated @RequestBody TodoModifyRequestDTO requestDTO, BindingResult result, HttpServletRequest request) { //풋인지 패치인지 구분하고싶으면 HttpServlet써도됨~
 
         if (result.hasErrors()) {
             return ResponseEntity.badRequest()
@@ -108,7 +108,7 @@ public class TodoController {
         log.info("modifying dto: {}", requestDTO);
 
         try {
-            TodoListResponseDTO responseDTO = todoService.update(requestDTO);
+            TodoListResponseDTO responseDTO = todoService.update(requestDTO, userInfo.getUserId());
             return ResponseEntity.ok().body(responseDTO);
 
         } catch (RuntimeException e) {

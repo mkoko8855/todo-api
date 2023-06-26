@@ -41,8 +41,9 @@ public class User {
 
 
     @Enumerated(EnumType.STRING)
-    @ColumnDefault("'COMMON'")
-    private Role role; //유저 권한
+    //@ColumnDefault("'COMMON'")
+    @Builder.Default //기본값은 내가 지정한다! -> Role.COMMON;
+    private Role role = Role.COMMON; //유저 권한. 직접초기화.
 
 
 

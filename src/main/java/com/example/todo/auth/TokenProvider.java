@@ -1,7 +1,9 @@
 package com.example.todo.auth;
 
 //0623
+import com.example.todo.userapi.entity.Role;
 import com.example.todo.userapi.entity.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -84,7 +86,7 @@ public class TokenProvider { //얘의 역할은, 토큰을 발급하고, 서명 
         //토큰에 집어넣고싶으면 map에다가 put해. map은 메서드가 add가아님.
         claims.put("email", userEntity.getEmail());
         //롤하나선언헀으니 롤도뽑을까
-        claims.put("role", userEntity.getRole());
+        claims.put("role", userEntity.getRole().toString());
 
 
 
@@ -103,6 +105,7 @@ public class TokenProvider { //얘의 역할은, 토큰을 발급하고, 서명 
                         SignatureAlgorithm.HS512 //알고리즘 방식이며, 우리가준비한 랜덤문자열을 바이트로 전달해서 한번 더 암호화를 진행한다. 외부에노출되면안되니.
                 )
                 //이번에는 token payload에 들어갈 클레임(토큰의 내용)을 설정한다.
+                .setClaims(claims) //추가클레임은 먼저 설정해야함! //0626
                 .setIssuer("딸기겅듀") //발급자가누구니   iss:발급자 정보
                 .setIssuedAt(new Date()) //iat: 발급시간
                 .setExpiration(expiry)  //만료시간(exp)은 위에서 만들었었다.
@@ -111,7 +114,44 @@ public class TokenProvider { //얘의 역할은, 토큰을 발급하고, 서명 
 
 
                 //추가 클레임 정의했던거
-                .setClaims(claims)
+                //.setClaims(claims) 이거 맨위로올리자. 0626
                 .compact();
     }
+
+
+
+
+    //0626
+    /**
+     * 얘는 클라이언트가 전송한 토큰을 디코딩하여 토큰의 위조 여부를 확인할 것이고,
+     * 토큰을 json으로 파싱(변환)해서 클레임(토큰 정보)를 리턴을 해 줄것이다.
+     * @param token
+     * @return -> 토큰 안에 있는 인증된 유저 정보를 반환.
+     */
+    public TokenUserInfo validateAndGetToKenUserInfo(String token){
+
+        Claims claims = Jwts.parserBuilder() //토큰은 빌더를 사용했지만, 파싱(변환)한다했으니 메서드가 다름, 괄호 안에는 토큰 발급자의 발급 당시의 서명을 넣어주자.
+                .setSigningKey(Keys.hmacShaKeyFor(SECRET_KEY.getBytes())) //메서드임. 시크릿키를 바이트로변환.
+                //서명이 위조 되었는지 먼저 검사함. 위조 된 경우에는 예외(에러)가 발생한다.
+                //위조가 되지 않은 경우는 페이로드를 리턴한다.
+                .build()
+                //데이터꺼내자
+                .parseClaimsJws(token)
+                .getBody();//리턴이 클레임스이라는 타입의 리턴값이된다.
+
+                log.info("claims: {}", claims); //클레임스는 참고로 위의 setClaims,딸기겅듀,new Date, expiry, setSubect 등을 가지고 있다!
+
+
+                return TokenUserInfo.builder() //id,email,role
+                        .userId(claims.getSubject()) //위에보면 setSubject로 id를 넣었으니. 서브젝트로 가져와야지?
+                        .email(claims.get("email", String.class))
+                        .role(Role.valueOf(claims.get("role", String.class))) //문자열로 넣었으니 문자열로 받아서 그것을 role타입으로 바꿔서 role한테주겠다.
+                        .build();
+    }
+
+
+
+
+
+
 }
