@@ -1,5 +1,6 @@
 package com.example.todo.userapi.api;
 
+import com.example.todo.auth.TokenUserInfo;
 import com.example.todo.exception.DuplicatedEmailException;
 import com.example.todo.exception.NoRegisteredArgumentsException;
 import com.example.todo.userapi.dto.UserSignUpResponseDTO;
@@ -10,6 +11,8 @@ import com.example.todo.userapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -84,7 +87,41 @@ public class UserController {
             return ResponseEntity.badRequest() //배드리퀘스트가 맞지. 이메일이 없다는건 이메일을잘못적은거고 비번도 마찬가지고.
                     .body(e.getMessage());
         }
+    }
+
+
+
+    //회원가입하면 common등급은 기본으로 주는데 프리미엄으로 승격할수도있지? 0627
+    //즉, 일반 회원을 프리미엄 회원으로 승격하는 요청 처리
+    //crud 중, 수정이겠지.
+
+    //수정이니 풋or패치 맵핑
+    @PutMapping("/promote") //로그인을 해야만함
+    @PreAuthorize("hasRole('ROLE_COMMON')") //얘는, 권한 검사. 즉, 해당 권한이 아니라면 인가처리 거부하고 403 코드를 리턴한다. 0627 -> ROLE_COMMON이 아닌 애들은 다 내친다. 굳이 서비스에서 COMMON이 맞냐? 라고 확인안해도됨.
+    public ResponseEntity<?> promote(@AuthenticationPrincipal TokenUserInfo userInfo){
+        log.info("/api/auth/promote - PUT!");
+
+        try{
+           LoginResponseDTO responseDTO = userService.promoteToPremium(userInfo);
+            return ResponseEntity.ok()
+                    .body(responseDTO);
+        }catch (IllegalStateException | NoRegisteredArgumentsException e){
+            e.printStackTrace();
+            log.warn(e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(e.getMessage());
+        } catch (Exception e){
+            return ResponseEntity.internalServerError().build();
+        }
 
 
     }
+
+
+
+
+
+
+
+
 }

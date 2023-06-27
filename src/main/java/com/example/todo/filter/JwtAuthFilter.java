@@ -22,14 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 //0626
-//클라이언트가 전송한 토큰을 검사하는 필터
+//클라이언트가 전송한 토큰을 검사하는 필터(로그인 했을 때 회원이 아닌지 맞는지 검사해주는 필터)
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter { //JWT를 검증할 수 있는 필터. OncePerRequestfilter는 메서드다. 요청마다 한번씩 해야됨.
 
 
-    private final TokenProvider tokenProvider;
+    private final TokenProvider tokenProvider; //토큰을제공하고 유효성검사 해주는 애.
 
 
 
@@ -58,7 +58,7 @@ public class JwtAuthFilter extends OncePerRequestFilter { //JWT를 검증할 수
                 //인가 정보 리스트
                 List<SimpleGrantedAuthority> authorityList
                         = new ArrayList<>();
-                authorityList.add(new SimpleGrantedAuthority(userInfo.getRole().toString())); //매개값으로는 role은 userInfo에 들어있으니
+                authorityList.add(new SimpleGrantedAuthority("ROLE_" + userInfo.getRole().toString())); //매개값으로는 role은 userInfo에 들어있으니 -> 0627
 
 
                 //유저인포까지 얻어왔으니, 인증완료처리진행하자.
@@ -79,7 +79,7 @@ public class JwtAuthFilter extends OncePerRequestFilter { //JWT를 검증할 수
 
         } catch (Exception e) {
             e.printStackTrace(); //로그확인위해 프린트스택~
-            log.error("토큰이 위조가 되었습니다.");
+            log.error("토큰이 위조가 되었거나 만료 되었습니다.");
         }
 
         //필터 체인에 내가 만든 필터 실행 명령.  이거 안해주면 넘어가지가 않음.
@@ -87,7 +87,7 @@ public class JwtAuthFilter extends OncePerRequestFilter { //JWT를 검증할 수
 
     }
 
-    private String parseBearerToken(HttpServletRequest request) {
+    private String parseBearerToken(HttpServletRequest request) { //requst객체를 통해 헤더를꺼낼꺼임.
 
         //이제 필터 안에서,
         //요청 헤더에서 토큰을 가져오자.

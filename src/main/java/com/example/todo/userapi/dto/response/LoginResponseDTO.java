@@ -30,15 +30,19 @@ public class LoginResponseDTO { //로그인 성공 후, 클라이언트에게 �
 
     //private String message; //로그인 성공 후 띄울 메세지
 
+    private String role; //권한  0627
 
 
-    public LoginResponseDTO(User user, String token) { //얜 유저받고 토큰받는구나.
+
+
+
+    public LoginResponseDTO(User user, String token) { //얜 유저받고 토큰받으면 아래처럼 세팅해라!
 
         this.email = user.getEmail();
         this.userName = user.getUserName();
         this.joinDate = LocalDate.from(user.getJoinDate()); //Localdate객체가 LocalDateTime으로바뀜!
         this.token = token;
-
+        this.role = String.valueOf(user.getRole()); //스트링밸류오브는 어떤 타입이던 문자열로 변경해준다. 0627
 
     }
 }

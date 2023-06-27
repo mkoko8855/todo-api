@@ -10,7 +10,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Setter
+
 @Getter
 @ToString
 @EqualsAndHashCode(of = "id")
@@ -46,6 +46,11 @@ public class User {
     private Role role = Role.COMMON; //유저 권한. 직접초기화.
 
 
+
+    //등급 수정 메서드
+    public void changeRole(Role role){
+        this.role = role;
+    }
 
 
 

@@ -25,7 +25,7 @@ import java.util.Objects;
 public class TokenProvider { //얘의 역할은, 토큰을 발급하고, 서명 위조를 검사하는 객체
 
     // 서명에 사용할 값으로 사용함. (512비트 이상의 랜덤 문자열로 지정할 것을 권장함.)
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret}") //야믈에서옴
     private String SECRET_KEY; //야믈가서 내용 값 작성.
 
 
@@ -104,8 +104,9 @@ public class TokenProvider { //얘의 역할은, 토큰을 발급하고, 서명 
                         Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), //문자열(시크릿키)을 바이트로 나열해서 전달한다.
                         SignatureAlgorithm.HS512 //알고리즘 방식이며, 우리가준비한 랜덤문자열을 바이트로 전달해서 한번 더 암호화를 진행한다. 외부에노출되면안되니.
                 )
-                //이번에는 token payload에 들어갈 클레임(토큰의 내용)을 설정한다.
+                //서명 암호화 했으면 이번에는 token payload에 들어갈 클레임(토큰의 내용)을 설정한다.
                 .setClaims(claims) //추가클레임은 먼저 설정해야함! //0626
+
                 .setIssuer("딸기겅듀") //발급자가누구니   iss:발급자 정보
                 .setIssuedAt(new Date()) //iat: 발급시간
                 .setExpiration(expiry)  //만료시간(exp)은 위에서 만들었었다.
@@ -115,7 +116,7 @@ public class TokenProvider { //얘의 역할은, 토큰을 발급하고, 서명 
 
                 //추가 클레임 정의했던거
                 //.setClaims(claims) 이거 맨위로올리자. 0626
-                .compact();
+                .compact(); //.build랑 같다고보면됨.
     }
 
 
@@ -133,9 +134,9 @@ public class TokenProvider { //얘의 역할은, 토큰을 발급하고, 서명 
         Claims claims = Jwts.parserBuilder() //토큰은 빌더를 사용했지만, 파싱(변환)한다했으니 메서드가 다름, 괄호 안에는 토큰 발급자의 발급 당시의 서명을 넣어주자.
                 .setSigningKey(Keys.hmacShaKeyFor(SECRET_KEY.getBytes())) //메서드임. 시크릿키를 바이트로변환.
                 //서명이 위조 되었는지 먼저 검사함. 위조 된 경우에는 예외(에러)가 발생한다.
-                //위조가 되지 않은 경우는 페이로드를 리턴한다.
+                //위조가 되지 않은 경우는 페이로드를 리턴한다. 위조면 즉시 에러.
                 .build()
-                //데이터꺼내자
+                //변환해서 데이터꺼내자
                 .parseClaimsJws(token)
                 .getBody();//리턴이 클레임스이라는 타입의 리턴값이된다.
 
@@ -144,8 +145,8 @@ public class TokenProvider { //얘의 역할은, 토큰을 발급하고, 서명 
 
                 return TokenUserInfo.builder() //id,email,role
                         .userId(claims.getSubject()) //위에보면 setSubject로 id를 넣었으니. 서브젝트로 가져와야지?
-                        .email(claims.get("email", String.class))
-                        .role(Role.valueOf(claims.get("role", String.class))) //문자열로 넣었으니 문자열로 받아서 그것을 role타입으로 바꿔서 role한테주겠다.
+                        .email(claims.get("email", String.class)) //이메일을 string타입으로꺼내주세요
+                        .role(Role.valueOf(claims.get("role", String.class))) //문자열로 넣었으니 문자열로 꺼내고 그것을 role타입으로 바꿔서 role한테주겠다.
                         .build();
     }
 

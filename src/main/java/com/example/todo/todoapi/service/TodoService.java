@@ -1,11 +1,13 @@
 package com.example.todo.todoapi.service;
 
+import com.example.todo.auth.TokenUserInfo;
 import com.example.todo.todoapi.dto.request.TodoCreateRequestDTO;
 import com.example.todo.todoapi.dto.request.TodoModifyRequestDTO;
 import com.example.todo.todoapi.dto.response.TodoDetailResponseDTO;
 import com.example.todo.todoapi.dto.response.TodoListResponseDTO;
 import com.example.todo.todoapi.entity.Todo;
 import com.example.todo.todoapi.repository.TodoRepository;
+import com.example.todo.userapi.entity.Role;
 import com.example.todo.userapi.entity.User;
 import com.example.todo.userapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,8 @@ public class TodoService {
     private final TodoRepository todoRepository; //오토와이어드 말고 final할꺼면, @RequiredArgsConstructor로하자.
 
     private final UserRepository userRepository; //0626
+
+
 
 
     //할 일 목록 조회
@@ -96,13 +100,21 @@ public class TodoService {
 
 
     //할 일 등록요청 create 메서드문
-    public TodoListResponseDTO create(final TodoCreateRequestDTO requestDTO, final String userId)throws RuntimeException{
+    public TodoListResponseDTO create(final TodoCreateRequestDTO requestDTO, final TokenUserInfo userInfo)throws RuntimeException, IllegalStateException {
 
-        Todo todo = requestDTO.toEntity(getUser(userId));
+        User foundUser = getUser(userInfo.getUserId());
+        //권힌에 따른 글쓰기 제한 처리 0627
+        //일반회원이 일정을 5개 초과해서 작성하면 예외를 발생시키자
+        if(userInfo.getRole() == Role.COMMON && todoRepository.countByUser(foundUser) >= 5){
+            throw new IllegalStateException("일반회원은 더 이상 일정을 작성할 수 없습니다.");
+        }
+
+
+        Todo todo = requestDTO.toEntity(foundUser);
 
         todoRepository.save(todo); //전달받은 requestDTO를 엔터티로 바꿔서 보내줘야한다. 바꾼건 해놨잖아. TodoCreateRequestDTO에.
         log.info("할 일 저장 완료! 제목: {}", requestDTO.getTitle());
-        return retrieve(userId);
+        return retrieve(userInfo.getUserId());
     }
 
 

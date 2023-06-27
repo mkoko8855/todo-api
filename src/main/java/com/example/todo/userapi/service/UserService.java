@@ -2,12 +2,14 @@ package com.example.todo.userapi.service;
 
 
 import com.example.todo.auth.TokenProvider;
+import com.example.todo.auth.TokenUserInfo;
 import com.example.todo.exception.DuplicatedEmailException;
 import com.example.todo.exception.NoRegisteredArgumentsException;
 import com.example.todo.userapi.dto.UserSignUpResponseDTO;
 import com.example.todo.userapi.dto.request.LoginRequestDTO;
 import com.example.todo.userapi.dto.request.UserRequestSignUpDTO;
 import com.example.todo.userapi.dto.response.LoginResponseDTO;
+import com.example.todo.userapi.entity.Role;
 import com.example.todo.userapi.entity.User;
 import com.example.todo.userapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,11 +42,11 @@ public class UserService {
 
 
         String email = dto.getEmail(); //dto.getEmail자꾸 선언해줘야하니 변수로 줘버리자.
-        if(dto == null || email.equals("")){ //널이거나 공백이면
+        if(dto == null){ //널이거나 공백이면
             throw new NoRegisteredArgumentsException("가입 정보가 없습니다. ");
         }
 
-        if(userRepository.existsByEmail(email)){
+        if(isDuplicate(email)){
             //만약, dto에서 이메일을 꺼내서 전달할 때, 만약 트루가떴다? 그럼 이미 이메일이 존재하는거니까
             log.warn("이메일이 중복되었습니다. - {}", email);
             throw new DuplicatedEmailException("중복된 이메일 입니다.");
@@ -83,6 +85,7 @@ public class UserService {
     public LoginResponseDTO authenticate(final LoginRequestDTO dto){ //클라이언트에서 데이터가 넘어오겠지 뭘로받을까, LoginRequestDTO dto 로 받자.
 
         //조회먼저해야겠지. 사용자가 로그인을 위해 보내준 정보랑 회원 정보랑 비교하려고.
+
         //이메일을 통해 회원 정보를 조회.
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow( //데이터가존재하지않으면 런타임익셉션을 실행함.
@@ -92,7 +95,7 @@ public class UserService {
         //비밀번호 검증해야되는데, 암호화해놨잖아.
         //패스워드 검증
         String rawPassword = dto.getPassword(); //사용자가 입력한 날것의 비밀번호
-        String encodedPassword = user.getPassword(); //DB에 저장된 비밀번호
+        String encodedPassword = user.getPassword(); //DB에 저장된 비밀번호(암호화되어있음)
 
         if(!encoder.matches(rawPassword, encodedPassword)){ //일치하지않으면
             throw new RuntimeException("비밀번호가 틀렸습니다.");
@@ -113,5 +116,34 @@ public class UserService {
 
 
 
+    //0627
+    //프리미엄으로 등급 업
+    public LoginResponseDTO promoteToPremium(TokenUserInfo userInfo) throws NoRegisteredArgumentsException, IllegalStateException {
+
+        User foundUser = userRepository.findById(userInfo.getUserId())
+                .orElseThrow(() -> new NoRegisteredArgumentsException("회원 조회에 실패!"));
+
+
+
+
+    //일반 회원이 아니면 예외
+    if (userInfo.getRole() != Role.COMMON){
+        throw new IllegalStateException("일반 회원이 아니면 등급을 상승시킬 수 없습니다.");
+    }
+
+        //등급 변경
+        foundUser.changeRole(Role.PREMIUM);
+        User saved = userRepository.save(foundUser);
+
+        //변경된 권한에 맞게 토큰을 재발급하자
+        //발급은 프로바이저가해줬지
+        String token = tokenProvider.createToken(saved);
+
+
+    return new LoginResponseDTO(saved, token);
+
 
 }
+
+}
+

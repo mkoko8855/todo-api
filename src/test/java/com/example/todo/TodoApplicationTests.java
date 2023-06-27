@@ -16,7 +16,7 @@ class TodoApplicationTests {
 
 	
 	@Test
-	@DisplayName("토큰 서명 해시값 생성하기")
+	@DisplayName("토큰 서명 해시값 생성하기") //야믈 마지막줄인 jwt secret부분의 해시값 만들어줌! alsmd2@53#^n;asnc;같은거.
 	void makeSecretKey() {
 
 		SecureRandom random = new SecureRandom(); //객체생성

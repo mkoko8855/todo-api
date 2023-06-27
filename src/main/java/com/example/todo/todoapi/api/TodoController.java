@@ -9,6 +9,7 @@ import com.example.todo.todoapi.dto.response.TodoListResponseDTO;
 import com.example.todo.todoapi.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
@@ -43,11 +44,21 @@ public class TodoController {
         //입력값 검증 통과하면 if문 건너뛰니..이제부르자
         //todoService.create(requestDTO); 그러나 이거 트라이캐치로 쓸 것임.
         try {
-            TodoListResponseDTO responseDTO = todoService.create(requestDTO, userInfo.getUserId()); //requestDTO는 위에 매개값으로적은것
+            TodoListResponseDTO responseDTO = todoService.create(requestDTO, userInfo); //requestDTO는 위에 매개값으로적은것
             return ResponseEntity
                     .ok()
                     .body(responseDTO);
-        } catch (RuntimeException e) {
+        } catch (IllegalStateException e){
+            //권한 때문에 발생한 예외.
+            log.warn(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED) //404에러보내고싶으면 404라고써도됨. 성공이면 200주면됨..HttpStatus.UNAUTHORIZED은 401과같다.
+                    .body(e.getMessage());
+        }
+
+
+
+
+        catch (RuntimeException e) {
             log.error(e.getMessage());
             return ResponseEntity
                     .internalServerError()
