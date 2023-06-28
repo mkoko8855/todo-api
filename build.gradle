@@ -50,6 +50,8 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
 
+	// 파일 업로드 라이브러리 0628
+	implementation 'commons-io:commons-io:2.8.0'
 
 
 

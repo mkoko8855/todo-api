@@ -14,6 +14,16 @@ spring:
       ddl-auto: update
     database: mysql # DB ?? ??
 
+
+
+  #0628
+  servlet:
+    multipart:
+      max-file-size: 10MB # 1개의 파일의 최대 사이즈
+      max-request-size: 20MB # 전체 요청의 최대 사이즈 (파일 여러개일 때, 최대용량이 20MB이라는 뜻)
+
+
+
 logging.level:
   org.hibernate.SQL: debug
 
@@ -26,3 +36,10 @@ springdoc:
 
 jwt:
   secret: QQMZmMaqLCDMD0GABTfsemmIhq/wMbTltwVt1P0q30x3qXw0eiBXafukEHkj9vEZof/rF7dWB2Ais7GiRXe8rA==
+
+
+
+
+# 업로드 파일 저장 경로 0628 -> 클라이언트에서 보내면 어디다가 저장해놓고 꺼내야하니까.
+upload:
+  path: C:/todo_upload

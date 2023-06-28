@@ -46,6 +46,11 @@ public class User {
     private Role role = Role.COMMON; //유저 권한. 직접초기화.
 
 
+    //0628
+    private String profileImg; //이미지 경로
+
+
+
 
     //등급 수정 메서드
     public void changeRole(Role role){

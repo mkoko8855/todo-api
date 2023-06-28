@@ -14,8 +14,14 @@ import com.example.todo.userapi.entity.User;
 import com.example.todo.userapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
 
 //0622 0623
 @Service
@@ -31,9 +37,13 @@ public class UserService {
 
     private final TokenProvider tokenProvider; //TokenProvider클래스를 위한 주입. 주입하려면 빈등록해야지.
 
+    @Value("${upload.path}") //야믈에적었던거주입받기위해
+    private String uploadRootPath; //0628
+
+    
 
     //회원 가입 처리
-    public UserSignUpResponseDTO create(final UserRequestSignUpDTO dto) throws RuntimeException { //컨트롤러가 얘를 부르겠지. dto를받아서 서비스로넘기면 서비스가 화면단으로 넘기겠지. UserRequestSignUpDTO 는 일단 임의로 만들었음. 이건, 유저 회원가입 요청(유저엔터티쪽에서)이 들어올때, 그때 사용할 dto다.
+    public UserSignUpResponseDTO create(final UserRequestSignUpDTO dto, final String uploadedFilePath) throws RuntimeException { //컨트롤러가 얘를 부르겠지. dto를받아서 서비스로넘기면 서비스가 화면단으로 넘기겠지. UserRequestSignUpDTO 는 일단 임의로 만들었음. 이건, 유저 회원가입 요청(유저엔터티쪽에서)이 들어올때, 그때 사용할 dto다.
 
         //throws를 사용하는 이유는 예외가 다양하게 발생할떄, 부르는 곳에서 처리하기 위해 쓴다.
         //create메서드에서 발생하는 아래 2가지 예외(가입정보X, 중복된이메일)를 create 메서드를 부르는 컨트롤러가 처리할 수 있다.
@@ -59,7 +69,7 @@ public class UserService {
 
 
         //중복확인했으니, 데이터넣으려면 유저엔터티로해야겠지(지금 우리는 dto를가지고있으니 변환)
-        User user = dto.toEntity();
+        User user = dto.toEntity(uploadedFilePath);
         User saved = userRepository.save(user); //User saved안써도됨. 아래 알림창띄울라고 User saved해줬음
 
 
@@ -146,6 +156,37 @@ public class UserService {
 
 
 }
+
+
+
+    /**  0628
+     * 업로드된 파일을 서버에 저장하고 저장 경로를 리턴
+     * @param originalFile - 업로드 된 파일의 정보
+     * @return 실제로 저장된 이미지 경로
+     */
+
+     public String uploadProfileImage(MultipartFile originalFile) throws IOException {  //0628
+         //야믈에서 만든 그 C:/파일을 작성해줌.
+         //즉, 루트 디렉토리가 존재하는 지 확인 후 존재하지 않으면 생성
+         File rootDir = new File(uploadRootPath);
+         if(!rootDir.exists()) rootDir.mkdir();
+
+         //파일명을 유니크(고유)하게 변경하자.
+         String uniqueFileName = UUID.randomUUID() + "_" + originalFile.getOriginalFilename(); //UUID에 랜덤UUID~ 원랜 tostring이지만, 오리지날 파일과 겹처서 작성한다.
+
+         //파일명까지 유니크하게 생성했으니, 저장하자.
+         File uploadFile = new File(uploadRootPath + "/" + uniqueFileName);
+         originalFile.transferTo(uploadFile);
+
+         //파일 경로를 리턴해야지
+         return uniqueFileName;
+
+     }
+
+
+
+
+
 
 }
 

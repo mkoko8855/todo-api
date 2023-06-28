@@ -40,11 +40,12 @@ public class UserRequestSignUpDTO { //(지금 엔터티는 User이다. id랑 joi
     private String password;
 
 
-    public User toEntity(){
+    public User toEntity(String uploadedFilePath){
         return User.builder()
                 .email(this.email)
                 .password(this.password)
                 .userName(this.userName)
+                .profileImg(uploadedFilePath)
                 .build();
     }
 

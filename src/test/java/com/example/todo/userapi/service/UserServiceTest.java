@@ -8,8 +8,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 
 import javax.transaction.Transactional;
-import javax.validation.constraints.AssertFalse;
-import javax.validation.constraints.Size;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,7 +42,7 @@ class UserServiceTest {
 
         //then (예외터지는걸 단언할껀데, 어썰트를 통해 예외를 받는방법이있다.)    유저서비스의 create문을 부르면서, 나는 단언한다)
         assertThrows(RuntimeException.class, () -> {
-            userService.create(dto);
+            userService.create(dto, "");
         }); //첫번째는 어떤 에러가 발생할 지의 에러의 클래스, 두번째매개값으로는 에러발생상황을 함수형식으로 선언.
     }
     

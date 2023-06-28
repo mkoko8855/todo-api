@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.Email;
 
@@ -48,8 +49,10 @@ public class UserController {
     //회원 가입 요청 처리
     //POST: /api/auth
     @PostMapping
-    public ResponseEntity<?> signup(@Validated @RequestBody UserRequestSignUpDTO dto, BindingResult result) { //signup은 회원가입. in은 로그인
+    public ResponseEntity<?> signup(@Validated @RequestPart("user") UserRequestSignUpDTO dto, @RequestPart(value = "profileImage", required = false) MultipartFile profileImg, BindingResult result) { //signup은 회원가입. in은 로그인 -> 0628수정
+
         log.info("/api/auth POST - {}", dto);
+
 
         if (result.hasErrors()) {
             log.warn(result.toString()); //그냥 결과한번 찍어보고~
@@ -57,9 +60,16 @@ public class UserController {
                     .body(result.getFieldError()); //방금 발생한 에러를 꺼내서 리턴해주자.
         }
 
-        //문제없으면 create부르자!
+
         try {
-            UserSignUpResponseDTO responseDTO = userService.create(dto);//서비스의 create를 부르면서 dto전달해주자. 그리고 지역변수로 삽입
+            String uploadedFilePath = null; //일단 변수 선언만 -> 프로파일이미지가 null이 아니라면 아래로~
+            if (profileImg != null) { //유효성 검사
+                log.info("attached file name: {}", profileImg.getOriginalFilename());
+                uploadedFilePath = userService.uploadProfileImage(profileImg);
+            }
+
+
+            UserSignUpResponseDTO responseDTO = userService.create(dto, uploadedFilePath);//서비스의 create를 부르면서 dto전달해주자. 그리고 지역변수로 삽입 -> create는 업로드파일패쓰도 같이 받게끔.
             return ResponseEntity.ok()
                     .body(responseDTO);
         } catch (NoRegisteredArgumentsException e) {
@@ -70,9 +80,13 @@ public class UserController {
             log.warn("이메일이 중복되었습니다.");
             return ResponseEntity.badRequest()
                     .body(e.getMessage());
+        } catch (Exception e) { //0628
+            log.warn("기타 예외가 발생했습니다.");
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
-    }
 
+    }
 
     //로그인 요청 처리
     @PostMapping("/signin")
