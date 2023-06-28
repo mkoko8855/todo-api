@@ -92,12 +92,12 @@ public class UserController {
 
 
     //회원가입하면 common등급은 기본으로 주는데 프리미엄으로 승격할수도있지? 0627
-    //즉, 일반 회원을 프리미엄 회원으로 승격하는 요청 처리
-    //crud 중, 수정이겠지.
+    //즉, 일반 회원을 프리미엄 회원으로 승격하는 요청 처리(권한 검사도같이)
+    //crud 중, 수정이겠지. UPDATE작성임.
 
     //수정이니 풋or패치 맵핑
     @PutMapping("/promote") //로그인을 해야만함
-    @PreAuthorize("hasRole('ROLE_COMMON')") //얘는, 권한 검사. 즉, 해당 권한이 아니라면 인가처리 거부하고 403 코드를 리턴한다. 0627 -> ROLE_COMMON이 아닌 애들은 다 내친다. 굳이 서비스에서 COMMON이 맞냐? 라고 확인안해도됨.
+    @PreAuthorize("hasRole('ROLE_COMMON')") //얘는, 권한 검사. 즉, 해당 권한이 아니라면 인가처리 거부하고 403 코드를 리턴한다. 0627 -> ROLE_COMMON이 아닌 애들은 다 내친다. 굳이 서비스에서 COMMON이 맞냐? 라고 확인안해도됨. ROLE_ 에 대해선 웹시큐리티클래스에 써놨음.
     public ResponseEntity<?> promote(@AuthenticationPrincipal TokenUserInfo userInfo){
         log.info("/api/auth/promote - PUT!");
 

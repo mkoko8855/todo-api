@@ -120,6 +120,7 @@ public class UserService {
     //프리미엄으로 등급 업
     public LoginResponseDTO promoteToPremium(TokenUserInfo userInfo) throws NoRegisteredArgumentsException, IllegalStateException {
 
+        //등급 업그레이드시킬 회원을 일단 조회.
         User foundUser = userRepository.findById(userInfo.getUserId())
                 .orElseThrow(() -> new NoRegisteredArgumentsException("회원 조회에 실패!"));
 
@@ -137,6 +138,7 @@ public class UserService {
 
         //변경된 권한에 맞게 토큰을 재발급하자
         //발급은 프로바이저가해줬지
+        //즉, 새로운 롤을 재발급해주자.
         String token = tokenProvider.createToken(saved);
 
 
