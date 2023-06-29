@@ -57,9 +57,10 @@ public class WebSecurityConfig { //유저서비스의 비밀번호 인코더(다
 
                 //어떤 요청에서 인증을 안 할 것인지를 설정, 언제 할 것인지를 설정.
                 .authorizeRequests()
-                .antMatchers(HttpMethod.PUT, "/api/auth/promote")
+                .antMatchers(HttpMethod.PUT, "/api/auth/promote").authenticated()
+                .antMatchers("/api/auth/load-profile").authenticated()
                 //.antMatchers(HttpMethod.POST, "/api/todos").hasRole("ADMIN") //어드민인 사람만 허용하겠다 등등 여러 패턴을 설정 가능.
-                .authenticated()
+                //.authenticated()
                 .antMatchers("/","/api/auth/**").permitAll()   //만약 요청이 /api/auth/?? 이런식으로 왔다면 허용(permit). 그 이외는 인증받아야됨. permitAll로.
                 .anyRequest().authenticated(); //저거제외하고 나머지는 다 인증받아야함.
 

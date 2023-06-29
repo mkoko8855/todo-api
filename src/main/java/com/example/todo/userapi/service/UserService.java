@@ -37,7 +37,7 @@ public class UserService {
 
     private final TokenProvider tokenProvider; //TokenProvider클래스를 위한 주입. 주입하려면 빈등록해야지.
 
-    @Value("${upload.path}") //야믈에적었던거주입받기위해
+    @Value("${upload.path}") //야믈에적었던거(업로드) 주입받기위해
     private String uploadRootPath; //0628
 
     
@@ -184,9 +184,15 @@ public class UserService {
      }
 
 
+     //0629
+    public String findProfilePath(String userId) { //컨트롤러가 건네준 userId를 통해 jpa한테 찾아달라하자!
+
+        User user = userRepository.findById(userId) //아디 줄테니까 유저정보줘
+                .orElseThrow();
+        return uploadRootPath + "/" + user.getProfileImg(); //프로필 이미지 경로를 꺼내서 리턴~ -> 리턴된 값이 컨트롤러 filePath로간다.
 
 
 
-
+    }
 }
 
