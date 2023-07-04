@@ -3,6 +3,7 @@ package com.example.todo.userapi.service;
 
 import com.example.todo.auth.TokenProvider;
 import com.example.todo.auth.TokenUserInfo;
+import com.example.todo.aws.S3Service;
 import com.example.todo.exception.DuplicatedEmailException;
 import com.example.todo.exception.NoRegisteredArgumentsException;
 import com.example.todo.userapi.dto.UserSignUpResponseDTO;
@@ -37,8 +38,14 @@ public class UserService {
 
     private final TokenProvider tokenProvider; //TokenProvider클래스를 위한 주입. 주입하려면 빈등록해야지.
 
-    @Value("${upload.path}") //야믈에적었던거(업로드) 주입받기위해
-    private String uploadRootPath; //0628
+
+    private final S3Service s3Service; //0704
+
+
+
+
+    //@Value("${upload.path}") //야믈에적었던거(업로드) 주입받기위해
+    //private String uploadRootPath; //0628 -> 그러나 0704할때 필요없음.
 
     
 
@@ -168,18 +175,25 @@ public class UserService {
      public String uploadProfileImage(MultipartFile originalFile) throws IOException {  //0628
          //야믈에서 만든 그 C:/파일을 작성해줌.
          //즉, 루트 디렉토리가 존재하는 지 확인 후 존재하지 않으면 생성
-         File rootDir = new File(uploadRootPath);
-         if(!rootDir.exists()) rootDir.mkdir();
+
+         //File rootDir = new File(uploadRootPath); 이거 주석처리해. 0704
+         //if(!rootDir.exists()) rootDir.mkdir(); 이거 주석처리해. 0704 폴더가필요없으니
 
          //파일명을 유니크(고유)하게 변경하자.
          String uniqueFileName = UUID.randomUUID() + "_" + originalFile.getOriginalFilename(); //UUID에 랜덤UUID~ 원랜 tostring이지만, 오리지날 파일과 겹처서 작성한다.
 
-         //파일명까지 유니크하게 생성했으니, 저장하자.
-         File uploadFile = new File(uploadRootPath + "/" + uniqueFileName);
-         originalFile.transferTo(uploadFile);
+         //파일명까지 유니크하게 생성했으니, 저장하자. -> 그러나 0704 AWS에 의해 주석처리해.
+         //File uploadFile = new File(uploadRootPath + "/" + uniqueFileName);
+         //originalFile.transferTo(uploadFile);
+
+         //파일을 S3 버킷에 저장(0704)
+         //야믈에 buketName적은거있지. 거기다 저장하겠다는 것이다.
+         String uploadUrl
+                 = s3Service.uploadToS3Bucket(originalFile.getBytes(), uniqueFileName);//매개변수로 멀티파일로했으니, 바꿔야겠지.
+
 
          //파일 경로를 리턴해야지
-         return uniqueFileName;
+         return uploadUrl;
 
      }
 
@@ -189,8 +203,8 @@ public class UserService {
 
         User user = userRepository.findById(userId) //아디 줄테니까 유저정보줘
                 .orElseThrow();
-        return uploadRootPath + "/" + user.getProfileImg(); //프로필 이미지 경로를 꺼내서 리턴~ -> 리턴된 값이 컨트롤러 filePath로간다.
-
+        //return uploadRootPath + "/" + user.getProfileImg(); //프로필 이미지 경로를 꺼내서 리턴~ -> 리턴된 값이 컨트롤러 filePath로간다.
+        return user.getProfileImg(); //0704
 
 
     }
