@@ -11,7 +11,7 @@ devtools -> Spring boot에서 제공하는 개발 편의를 위한 모듈.
 브라우저에도 업데이트를 해주는 역할을 함
 
 
-# spring boot devtools 설정
+# spring boot devtools 설정 방법
 
 1. 파일 -> 설정
 2. 빌드, 실행, 배포 탭 클릭 -> 컴파일러 탭 클릭
